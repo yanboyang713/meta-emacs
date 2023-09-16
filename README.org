@@ -16,3 +16,17 @@ https://learnxinyminutes.com/docs/elisp/
 mkdir ~/.emacs.d
 touch ~/.emacs.d/init.el
 
+touch ~/library.bib
+mkdir /home/yanboyang713/.config/emacs
+
+cp .emacs.d/keybinds.el ~/.config/emacs
+
+mkdir ~/org
+mkdir ~/org/org-roam
+
+
+yay -S ttf-roboto-mono-nerd
+
+yay -S pyenv
+pyenv install 3.10.10
+
