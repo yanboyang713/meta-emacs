@@ -1,0 +1,18 @@
+* meta-emacs
+emacs
+
+* Install
+yay -S emacs
+
+https://github.com/doomemacs/doomemacs/blob/master/docs/getting_started.org#install
+
+* Why use Emacs?
+https://emacs.sexy/
+
+* Emacs Lisp
+https://learnxinyminutes.com/docs/elisp/
+
+* Hacking
+mkdir ~/.emacs.d
+touch ~/.emacs.d/init.el
+
