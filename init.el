@@ -1,4 +1,13 @@
 ;;; init.el --- Load the full configuration -*- lexical-binding: t -*-
+;;; Commentary:
+
+;; This file bootstraps the configuration, which is divided into
+;; a number of other files.
+
+;;; Code:
+
+;; Produce backtraces when errors occur: can be helpful to diagnose startup issues
+;;(setq debug-on-error t)
 
 (let ((minver "26.1"))
   (when (version< emacs-version minver)
@@ -8,6 +17,7 @@
 
 ;; Add user emacs dir = lisp
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
+(require 'init-benchmarking) ;; Measure startup time
 
 ;; Adjust garbage collection thresholds during startup, and thereafter
 
@@ -17,28 +27,17 @@
   (add-hook 'emacs-startup-hook
             (lambda () (setq gc-cons-threshold normal-gc-cons-threshold))))
 
+;; Bootstrap config
+
+(setq custom-file (locate-user-emacs-file "custom.el"))
+
+(require 'init-site-lisp) ;; Must come before elpa, as it may provide package.el
+(require 'init-elpa)      ;; Machinery for installing required packages
+(require 'init-straight-package)
+
 ;;;;;;;;;;;;;; 
 ;; STARTUP  ;;
 ;;;;;;;;;;;;;;
-
-;; Straight package management
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-	(url-retrieve-synchronously
-	 "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-	 'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-(setq package-enable-at-startup nil)
-
-;; Use-package
-(straight-use-package 'use-package)
 
 ;; Starting buffer
 (setq initial-buffer-choice t)

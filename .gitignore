@@ -1,5 +1,5 @@
 *
-!/lisp/*
+!lisp/.gitkeep
 !init.el
 !early-init.el
 !keybinds.el
