@@ -1,0 +1,8 @@
+*
+!/lisp/*
+!init.el
+!early-init.el
+!keybinds.el
+!LICENSE
+!README.org
+!.gitignore
