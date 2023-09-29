@@ -150,7 +150,7 @@
   :straight t
   :after org
   :custom
-  (org-ref-default-bibliography "/home/wouter/Tools/Zotero/bibtex/library.bib")
+  (org-ref-default-bibliography "~/library.bib")
   (org-ref-default-citation-link "citep")
   (org-ref-insert-link-function 'org-ref-insert-link-hydra/body)
   (org-ref-insert-cite-function 'org-ref-cite-insert-helm)
