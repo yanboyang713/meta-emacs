@@ -150,7 +150,7 @@
   :straight t
   :after org
   :custom
-  (org-ref-default-bibliography "~/library.bib")
+  (org-ref-default-bibliography "~/org/library.bib")
   (org-ref-default-citation-link "citep")
   (org-ref-insert-link-function 'org-ref-insert-link-hydra/body)
   (org-ref-insert-cite-function 'org-ref-cite-insert-helm)
@@ -183,7 +183,7 @@
   :after org
   :hook (org-roam-mode . visual-line-mode)
   :config
-  (setq org-roam-directory "~/org/org-roam/")
+  (setq org-roam-directory "~/org/org-roam/references/")
   (add-to-list 'display-buffer-alist
 	       '("\\*org-roam\\*"
 		 (display-buffer-in-side-window)
@@ -321,8 +321,8 @@
   :straight t
   :hook (helm-major-mode . (lambda() (display-line-numbers-mode 0)))
   :custom
-  (bibtex-completion-bibliography '("~/library.bib"))
-  (reftex-default-bibliography '("~/library.bib"))
+  (bibtex-completion-bibliography '("~/org/library.bib"))
+  (reftex-default-bibliography '("~/org/library.bib"))
   (bibtex-completion-pdf-field "file")
   :config
   (setq bibtex-completion-display-formats '((t . "${author:36} ${title:100} ${year:4} ${=has-pdf=:1}${=has-note=:1} ${=type=:7}")))
