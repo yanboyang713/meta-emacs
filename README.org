@@ -1,8 +1,42 @@
 * meta-emacs
 emacs
 
-* Install
-yay -S emacs
+* Install On Mac
+#+begin_src bash
+  xcode-select --install
+#+end_src
+Download emacs git code
+#+begin_src console
+$ git clone --depth 1 git://git.savannah.gnu.org/emacs.git
+#+end_src
+
+Install compile dependencies
+#+begin_src console
+$ brew install autoconf automake texinfo gnutls pkg-config libxml2 --debug --verbose
+#+end_src
+Compile emacs git
+#+begin_src console
+$ cd ./emacs && ./autogen.sh
+
+$ export LDFLAGS="-L/usr/local/opt/libxml2/lib"
+$ export CPPFLAGS="-I/usr/local/opt/libxml2/include"
+$ export PKG_CONFIG_PATH="/usr/local/opt/libxml2/lib/pkgconfig"
+
+$ ./configure && make && make install
+#+end_src
+Install in launcher:
+#+begin_src console
+open -R nextstep/Emacs.app
+
+#+end_src
+and dragging Emacs to the Applications folder.
+
+Add config in ~/.emacs
+
+* Install On Arch Linux
+#+begin_src bash
+yay -S emacs-git
+#+end_src
 
 https://github.com/doomemacs/doomemacs/blob/master/docs/getting_started.org#install
 
@@ -13,6 +47,7 @@ https://emacs.sexy/
 https://learnxinyminutes.com/docs/elisp/
 
 * Hacking
+#+begin_src bash
 mkdir ~/.emacs.d
 touch ~/.emacs.d/init.el
 
@@ -30,3 +65,4 @@ yay -S ttf-roboto-mono-nerd
 yay -S pyenv
 pyenv install 3.10.10
 
+#+end_src
