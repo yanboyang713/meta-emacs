@@ -1,7 +1,18 @@
 * meta-emacs
 emacs
 
-* Install On Mac
+* Pre-install
+#+begin_src bash
+  git clone git@github.com:yanboyang713/meta-emacs.git ~/.emacs.d
+  git clone git@github.com:yanboyang713/org.git ~/
+  paru -S base-devel libpng zlib poppler-glib
+  paru -S ttf-roboto-mono-nerd
+  paru -S pyenv
+  pyenv install 3.10.10
+#+end_src
+
+* Installation
+** Install On Mac
 #+begin_src bash
   xcode-select --install
 #+end_src
@@ -33,7 +44,7 @@ and dragging Emacs to the Applications folder.
 
 Add config in ~/.emacs
 
-* Install On Arch Linux
+** Install On Arch Linux
 #+begin_src bash
 yay -S emacs-git
 #+end_src
@@ -45,24 +56,3 @@ https://emacs.sexy/
 
 * Emacs Lisp
 https://learnxinyminutes.com/docs/elisp/
-
-* Hacking
-#+begin_src bash
-mkdir ~/.emacs.d
-touch ~/.emacs.d/init.el
-
-touch ~/library.bib
-mkdir /home/yanboyang713/.config/emacs
-
-cp .emacs.d/keybinds.el ~/.config/emacs
-
-mkdir ~/org
-mkdir ~/org/org-roam
-
-
-yay -S ttf-roboto-mono-nerd
-
-yay -S pyenv
-pyenv install 3.10.10
-
-#+end_src
