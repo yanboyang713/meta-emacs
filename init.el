@@ -44,6 +44,7 @@
 (setq initial-buffer-choice t)
 
 
+(require 'init-lsp-bridge)
 (require 'init-evil)
 (require 'init-org)
 (require 'init-spelling)
@@ -60,7 +61,7 @@
 (require 'init-c++)
 (require 'init-yaml)
 (require 'init-lisp)
-(require 'init-lsp)
+;;(require 'init-lsp)
 (require 'init-ui)
 (require 'init-keybindings)
 

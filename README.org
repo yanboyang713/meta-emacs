@@ -9,7 +9,11 @@ emacs
   paru -S ttf-roboto-mono-nerd
   paru -S pyenv
   pyenv install 3.10.10
+  paru -S hunspell
+  paru -S texlive texlive-lang biber
 #+end_src
+
+** Set-up Git
 
 * Installation
 ** Install On Mac
