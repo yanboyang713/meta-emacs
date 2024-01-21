@@ -48,7 +48,7 @@
 (require 'init-evil)
 (require 'init-org)
 (require 'init-spelling)
-(require 'init-completion)
+;;(require 'init-completion)
 (require 'init-r)
 
 (require 'init-utilities)

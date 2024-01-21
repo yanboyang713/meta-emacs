@@ -49,16 +49,56 @@
 ;; It's set in your ~/.emacs like this:
 ;; (add-to-list 'load-path (expand-file-name "~/elisp"))
 ;;
+(straight-use-package 'markdown-mode)
+
 (use-package yasnippet
-  :straight t
-  :hook ((lsp-mode . yas-minor-mode)))
+:straight t
+:hook ((lsp-mode . yas-minor-mode)))
 
 (use-package lsp-bridge
-  :straight '(lsp-bridge :type git :host github :repo "manateelazycat/lsp-bridge"
-            :files (:defaults "*.el" "*.py" "acm" "core" "langserver" "multiserver" "resources")
-            :build (:not compile))
+  :straight (:type git :host github :repo "manateelazycat/lsp-bridge"
+                   :files (:defaults
+                           "*")
+                   :includes (acm
+                              core
+                              langserver
+                              multiserver
+                              resources)
+		   :build (:not compile))
   :init
-  (global-lsp-bridge-mode))
+  (global-lsp-bridge-mode)
+  :config
+
+  ;; disable tabnine: it's not open source
+  (setq acm-enable-tabnine nil)
+  (setq lsp-bridge-python-command "/usr/bin/python3")
+
+  ;; enable signature help in posframe
+  (setq lsp-bridge-enable-signature-help t)
+  (setq lsp-bridge-signature-help-fetch-idle 0.3)
+  (setq lsp-bridge-signature-show-function 'lsp-bridge-signature-show-with-frame)
+  (setq lsp-bridge-signature-show-with-frame-position 'point)
+
+  ;; combine lsp-bridge with orderless
+  (setq acm-candidate-match-function 'orderless-flex)
+  (setq acm-backend-lsp-candidate-min-length 1)
+
+  ;; small QoL
+  (setq acm-enable-quick-access t)
+
+  ;; language servers
+  (setq lsp-bridge-c-lsp-server "ccls")
+  (setq lsp-bridge-python-lsp-server "pyright")
+  ;; (global-lsp-bridge-mode)
+  :hook (prog-mode . lsp-bridge-mode)
+  ) ;; global-lsp-bridge-mode maybe?
+
+;; needed for terminal, there is a visual bug
+;; if loading them in graphics mode
+(unless (or (display-graphic-p) (daemonp))
+  (require 'popon-setup)
+  (require 'acm-terminal-setup))
+
 ;; And the following to your ~/.emacs startup file.
 ;;
 ;; (require 'init-lsp-bridge)
@@ -88,44 +128,6 @@
 ;;
 ;;
 ;;
-
-;;; Require
-(require 'lsp-bridge)
-(require 'lsp-bridge-jdtls)
-
-;;; Code:
-
-(setq lsp-bridge-enable-completion-in-minibuffer t)
-(setq lsp-bridge-signature-show-function 'lsp-bridge-signature-show-with-frame)
-(setq lsp-bridge-enable-with-tramp t)
-(setq lsp-bridge-enable-org-babel t)
-(setq acm-enable-quick-access t)
-(setq acm-backend-yas-match-by-trigger-keyword t)
-(setq acm-enable-tabnine nil)
-(setq acm-enable-codeium t)
-
-(global-lsp-bridge-mode)
-
-;; 打开日志，开发者才需要
-;; (setq lsp-bridge-enable-log t)
-
-(setq lsp-bridge-get-multi-lang-server-by-project
-      (lambda (project-path filepath)
-        ;; If typescript file include deno.land url, then use Deno LSP server.
-        (save-excursion
-          (when (string-equal (file-name-extension filepath) "ts")
-            (dolist (buf (buffer-list))
-              (when (string-equal (buffer-file-name buf) filepath)
-                (with-current-buffer buf
-                  (goto-char (point-min))
-                  (when (search-forward-regexp (regexp-quote "from \"https://deno.land") nil t)
-                    (return "deno")))))))))
-
-;; Support jump to define of EAF root from EAF application directory.
-;;(setq lsp-bridge-get-project-path-by-filepath
-      ;;(lambda (filepath)
-        ;;(when (string-prefix-p (expand-file-name "~/lazycat-emacs/site-lisp/extensions/emacs-application-framework/app") filepath)
-          ;;(expand-file-name "~/lazycat-emacs/site-lisp/extensions/emacs-application-framework/"))))
 
 
 (provide 'init-lsp-bridge)
