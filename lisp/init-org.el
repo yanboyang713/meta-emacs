@@ -262,6 +262,8 @@
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 
+;;(org-roam-ui-open)
+
 ;; org-modern
 (use-package org-modern
   :straight t

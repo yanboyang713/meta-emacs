@@ -11,6 +11,8 @@ emacs
   pyenv install 3.10.10
   paru -S hunspell
   paru -S texlive texlive-lang biber
+
+  python3 -m pip install --break-system-packages epc orjson sexpdata six setuptools paramiko rapidfuzz
 #+end_src
 
 ** Set-up Git

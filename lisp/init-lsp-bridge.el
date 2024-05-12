@@ -51,9 +51,12 @@
 ;;
 (straight-use-package 'markdown-mode)
 
-(use-package yasnippet
-:straight t
-:hook ((lsp-mode . yas-minor-mode)))
+;;(use-package yasnippet
+;;:straight t
+;;:hook ((lsp-mode . yas-minor-mode)))
+(straight-use-package 'yasnippet)
+(straight-use-package 'yasnippet-snippets)
+(yas-global-mode t) ;; activate yasnippet
 
 (use-package lsp-bridge
   :straight (:type git :host github :repo "manateelazycat/lsp-bridge"
