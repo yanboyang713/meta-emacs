@@ -26,6 +26,10 @@
 	org-refile-use-outline-path 'file
 	org-outline-path-complete-in-steps nil
 	org-refile-allow-creating-parent-nodes (quote confirm)
+	
+	;; hugo
+	org-hugo-base-dir "/home/yanboyang713/quartz/content"
+	org-hugo-front-matter-format "yaml"
 
 	;; org keyword related stuff
 	org-todo-keywords
@@ -196,9 +200,14 @@
   
   (org-roam-db-autosync-mode)
   ;; Let's set up some org-roam capture templates
+
   (setq org-roam-capture-templates
 	(quote (("d" "default" plain
 		 "%?"
+		 :if-new (file+head "1-main/${slug}.org" "#+title: ${title}\n#+filetags: :moc:\n#+hugo_section: braindump\n#+date: %u\n#+hugo_lastmod: %u\n#+hugo_tags: noexport\n")
+		 :immediate-finish t
+		 :unnarrowed t
+		 :empty-lines-after 1
 		 :target
 		 (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
 			    "#+title: ${title}\n")
@@ -342,6 +351,23 @@
 	orb-file-field-extensions '("pdf")))
 (org-roam-bibtex-mode) ;;Only gets loaded properly when I put it here.
 
+;; Update last modified date for ox-hugo export
+(with-eval-after-load 'org
+  (setq time-stamp-active t
+        time-stamp-start "#\\+hugo_lastmod:[ \t]*"
+        time-stamp-end "$"
+        time-stamp-format "[%Y-%m-%d]")
+  (add-hook 'before-save-hook 'time-stamp)
+  ;; Automatically enable `org-hugo-auto-export-mode` in Org-mode
+  (add-hook 'org-mode-hook #'org-hugo-auto-export-mode)
+  )
+
+;; Install and configure `ox-hugo`
+(use-package ox-hugo
+  :straight t
+  :after ox
+  :config
+  (require 'ox-hugo))
 
 (provide 'init-org)
 ;;; init-org.el ends here
