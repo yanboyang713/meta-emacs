@@ -206,10 +206,6 @@
   (setq org-roam-capture-templates
 	(quote (("d" "default" plain
 		 "%?"
-		 :if-new (file+head "1-main/${slug}.org" "#+title: ${title}\n#+filetags: :moc:\n#+hugo_section: braindump\n#+date: %u\n#+hugo_lastmod: %u\n#+hugo_tags: noexport\n")
-		 :immediate-finish t
-		 :unnarrowed t
-		 :empty-lines-after 1
 		 :target
 		 (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
 			    "#+title: ${title}\n")
