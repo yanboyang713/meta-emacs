@@ -3,6 +3,8 @@
 
 ;;; Code:
 
+(require 'init-publish)
+
 (use-package org
   :straight t (:type built-in)
   :hook ((org-mode . flyspell-mode)
@@ -28,7 +30,7 @@
 	org-refile-allow-creating-parent-nodes (quote confirm)
 	
 	;; hugo
-	org-hugo-base-dir "/home/yanboyang713/quartz/content"
+	org-hugo-base-dir "/home/yanboyang713/quartz"
 	org-hugo-front-matter-format "yaml"
 
 	;; org keyword related stuff
@@ -243,13 +245,16 @@
 (use-package websocket
   :straight t
   :after org-roam)
+
 (use-package org-roam-ui
   :straight t
   :after org-roam
   :config
   (setq org-roam-ui-sync-theme t
-	org-roam-ui-follow t
-	org-roam-ui-update-on-save t))
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t)
+  ;; Enable org-roam-ui-mode globally.
+  (org-roam-ui-mode 1))
 
 ;; consult-org-roam
 (use-package consult
@@ -270,8 +275,6 @@
   :config
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
-
-;;(org-roam-ui-open)
 
 ;; org-modern
 (use-package org-modern

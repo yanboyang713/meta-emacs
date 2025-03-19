@@ -21,18 +21,6 @@
   (setq which-key-popup-type 'minibuffer
 	max-mini-window-height 0.5))
 
-
-;; chat-gpt
-(use-package shell-maker
-  :straight (:host github :repo "xenodium/chatgpt-shell" :files ("shell-maker.el")))
-
-(use-package chatgpt-shell
-  :requires shell-maker
-  :straight (:host github :repo "xenodium/chatgpt-shell" :files ("chatgpt-shell.el")))
-
-(setq chatgpt-shell-openai-key
-      (auth-source-pick-first-password :host "api.openai.com"))
-
 ;; Focus
 (use-package focus
   :straight t)
