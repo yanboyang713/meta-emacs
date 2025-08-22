@@ -5,7 +5,7 @@
 (with-eval-after-load "flyspell"
   (setq ispell-program-name "hunspell"
 	ispell-list-command "--list"
-	ispell-dictionary "en_GB"))
+	ispell-dictionary "en_US"))
 
 (use-package flyspell-correct-popup
   :straight t
@@ -16,7 +16,7 @@
   :config
   (setq langtool-java-classpath
 	"/usr/share/languagetool:/usr/share/java/languagetool/*"
-	langtool-default-language "en-GB"))
+	langtool-default-language "en-US"))
 
 (use-package writegood-mode
   :straight t)

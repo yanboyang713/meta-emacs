@@ -152,6 +152,7 @@
 		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
 
 ;; Set up org-ref stuff
+[
 (use-package org-ref
   :straight t
   :after org
@@ -172,6 +173,141 @@
 	;; For pdf export engines
 	org-latex-pdf-process (list "latexmk -pdflatex='%latex -shell-escape -interaction nonstopmode' -pdf -bibtex -f -output-directory=%o %f")
 	org-ref-notes-function 'orb-edit-notes))
+]
+
+;; All-the-icons (for pretty symbols in citar)
+(use-package all-the-icons
+  :straight t
+  :if (display-graphic-p))
+
+;; Org-cite and Citar configuration using straight.el
+(use-package citar
+  :straight t
+  :after oc
+  :custom
+  (org-cite-global-bibliography '("~/org/library.bib"))
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar)
+  (citar-bibliography '("~/org/library.bib"))
+  (citar-notes-paths '("~/org/org-roam/references/"))
+  (citar-symbols
+   `((file ,(all-the-icons-faicon "file-pdf-o" :face 'all-the-icons-green :v-adjust -0.1) . " ")
+     (note ,(all-the-icons-material "speaker_notes" :face 'all-the-icons-blue :v-adjust -0.3) . " ")
+     (link ,(all-the-icons-octicon "link" :face 'all-the-icons-orange :v-adjust 0.01) . " ")))
+  (citar-symbol-separator "  "))
+
+;; citar-org-roam only offers the citar-org-roam-note-title-template variable
+;; for customizing the contents of a new note and no way to specify a custom
+;; capture template. And the title template uses citar's own format, which means
+;; we can't run arbitrary functions in it.
+;;
+;; Left with no other options, we override the
+;; citar-org-roam--create-capture-note function and use our own template in it.
+(defun dh/citar-org-roam--create-capture-note (citekey entry)
+    "Open or create org-roam node for CITEKEY and ENTRY."
+    ;; adapted from https://jethrokuan.github.io/org-roam-guide/#orgc48eb0d
+    (let ((title (citar-format--entry
+                  citar-org-roam-note-title-template entry)))
+      (org-roam-capture-
+       :templates
+       '(("r" "reference" plain "%?" :if-new
+          (file+head
+           "%(concat
+ (when citar-org-roam-subdir (concat citar-org-roam-subdir \"/\")) \"${citekey}.org\")"
+           "#+title: ${title}\n\n#+begin_src bibtex\n%(dh/citar-get-bibtex citekey)\n#+end_src\n")
+          :immediate-finish t
+          :unnarrowed t))
+       :info (list :citekey citekey)
+       :node (org-roam-node-create :title title)
+       :props '(:finalize find-file))
+      (org-roam-ref-add (concat "@" citekey))))
+
+;; citar has a function for inserting bibtex entries into a buffer, but none for
+;; returning a string. We could insert into a temporary buffer, but that seems
+;; silly. Plus, we'd have to deal with trailing newlines that the function
+;; inserts. Instead, we do a little copying and implement our own function.
+(defun dh/citar-get-bibtex (citekey)
+    (let* ((bibtex-files
+            (citar--bibliography-files))
+           (entry
+            (with-temp-buffer
+              (bibtex-set-dialect)
+              (dolist (bib-file bibtex-files)
+                (insert-file-contents bib-file))
+              (bibtex-search-entry citekey)
+              (let ((beg (bibtex-beginning-of-entry))
+                    (end (bibtex-end-of-entry)))
+                (buffer-substring-no-properties beg end)))))
+      entry))
+
+(advice-add #'citar-org-roam--create-capture-note :override #'dh/citar-org-roam--create-capture-note)
+
+(defun dh/org-cite-export-bibliography-advice (fn keyword _ info)
+    (if (org-cite-list-keys info)
+        (funcall fn keyword nil info)))
+
+;; The CSL style we use causes an error when trying to export an empty bibliography. Wrap the relevant function to
+;; prevent that from happening.
+(advice-add #'org-cite-export-bibliography :around #'dh/org-cite-export-bibliography-advice)
+
+(defun dh/org-roam-node-directory (node)
+    (string-remove-suffix
+     "/"
+     (string-remove-prefix
+      "/"
+      (string-remove-prefix
+       org-roam-directory
+       (file-name-directory (org-roam-node-file node))))))
+
+(defun dh/org-roam-articles ()
+    (cl-remove-if-not
+     (lambda (node)
+       (string= "article" (cdr (assoc-string "KIND" (org-roam-node-properties node)))))
+     (org-roam-node-list)))
+
+(defun dh/org-roam-to-hugo (section files)
+    "Call `org-hugo-export-to-md' on all Org FILES.
+All files have to be in `org-roam-directory'. Output is written
+relative to SECTION in `org-hugo-base-dir'. Org files in
+subdirectories of `org-roam-directory' will get matching
+subdirectories underneath SECTION."
+    (mapcar
+     (lambda (node)
+       (with-current-buffer (find-file-noselect (org-roam-node-file node))
+         (let ((org-hugo-section (file-name-concat section (dh/org-roam-node-directory node))))
+           (org-hugo-export-to-md))))
+     files))
+
+(defun dh/org-insert-date-keyword ()
+    (org-roam-set-keyword "date" (format-time-string "[%Y-%m-%d %a]" (current-time))))
+
+(defun dh/org-export-before-parsing (backend)
+    (when (string= backend "hugo")
+      (org-roam-set-keyword
+       "hugo_lastmod"
+       (format-time-string "%Y-%m-%d" (file-attribute-modification-time (file-attributes (buffer-file-name)))))))
+
+;; (dh/org-roam-to-hugo "articles" (dh/org-roam-articles))
+
+(defun my/org-roam-export-all ()
+  "Export all Org-roam files containing a #+title: property to Hugo-compatible Markdown.
+If an error occurs during the export of a file, log the error and continue with the next file."
+  (interactive)
+  ;; Ensure Org-roam and ox-hugo are loaded
+  (require 'org-roam)
+  (require 'ox-hugo)
+  ;; Iterate over all Org-roam files
+  (dolist (file (org-roam-list-files))
+    (with-current-buffer (find-file-noselect file)
+      (goto-char (point-min))
+      ;; Check if the file contains a #+title: property
+      (when (re-search-forward "^#\\+title:" nil t)
+        ;; Attempt to export the file to Markdown using ox-hugo
+        (condition-case err
+            (org-hugo-export-wim-to-md)
+          (error
+           (message "Error exporting file %s: %s" file (error-message-string err))))))))
 
 ;; org-noter stuff
 (use-package org-noter
@@ -208,7 +344,7 @@
 		 "%?"
 		 :target
 		 (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
-			    "#+title: ${title}\n")
+			    "#+title: ${title}\n#+date: %<%Y-%m-%d>\n")
 		 :unnarrowed t)
 		("j" "journal article" plain
 		 (file "~/org/org-roam/templates/orb-capture")
@@ -367,6 +503,14 @@
   :after ox
   :config
   (require 'ox-hugo))
+
+(use-package nov
+  :straight t
+  :mode ("\\.epub\\'" . nov-mode))
+
+(with-eval-after-load 'undo-fu-session
+  (setq undo-fu-session-incompatible-major-modes
+        '(org-mode org-roam-mode ox-hugo-mode)))
 
 (provide 'init-org)
 ;;; init-org.el ends here
