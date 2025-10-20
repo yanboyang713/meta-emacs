@@ -19,12 +19,8 @@
 	org-default-notes-file "~/org/refile.org"
 	org-refile-targets (quote ((nil :maxlevel . 5)
 				   (org-agenda-files :maxlevel . 5)))
-	org-agenda-files (quote("~/org/"
-				"~/org/synced/"
-				"~/org/org-roam/"
-				"~/org/org-roam/daily/"
-				"~/org/org-roam/references/"
-				))
+	org-agenda-files '("~/org/refile.org"
+			   "~/org/org-roam/projects/service-migration.org")
 	org-refile-use-outline-path 'file
 	org-outline-path-complete-in-steps nil
 	org-refile-allow-creating-parent-nodes (quote confirm)
@@ -108,6 +104,15 @@
   (add-to-list 'org-latex-classes
 	       '("apa6"
 		 "\\documentclass{apa6}"
+		 ("\\section{%s}" . "\\section*{%s}")
+		 ("\\subsection{%s}" . "\\subsection*{%s}")
+		 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+		 ("\\paragraph{%s}" . "\\paragraph*{%s}")
+		 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+  (add-to-list 'org-latex-classes
+	       '("IEEEtran"
+		 "\\documentclass[conference]{IEEEtran}"
 		 ("\\section{%s}" . "\\section*{%s}")
 		 ("\\subsection{%s}" . "\\subsection*{%s}")
 		 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
@@ -502,7 +507,26 @@ If an error occurs during the export of a file, log the error and continue with 
   :straight t
   :after ox
   :config
-  (require 'ox-hugo))
+  (require 'ox-hugo)
+  (defun my/hugo-strip-relref-directory (text backend _info)
+    "Trim directory components from Hugo relref shortcodes in exported TEXT."
+    (if (and (eq backend 'hugo)
+             (string-match "{{< relref" text))
+        (replace-regexp-in-string
+         "{{< relref \"\\(?:../\\)*[^\"/]+/\\([^\"/]+\\)\" >}}"
+         "{{< relref \"\\1\" >}}"
+         text)
+      text))
+  (add-hook 'org-export-filter-link-functions #'my/hugo-strip-relref-directory)
+  (defun my/hugo-strip-org-todo-spans (text backend _info)
+    "Remove Org TODO span wrappers from exported TEXT for Hugo."
+    (if (eq backend 'hugo)
+        (replace-regexp-in-string
+         "<span class=\"org-todo[^>]*>\\([^<]+\\)</span>"
+         "\\1"
+         text)
+      text))
+  (add-hook 'org-export-filter-final-output-functions #'my/hugo-strip-org-todo-spans))
 
 (use-package nov
   :straight t
