@@ -519,7 +519,7 @@ If an error occurs during the export of a file, log the error and continue with 
       text))
   (add-hook 'org-export-filter-link-functions #'my/hugo-strip-relref-directory)
   (defun my/hugo-strip-org-todo-spans (text backend _info)
-    "Remove Org TODO span wrappers from exported TEXT for Hugo."
+    "Remove Org TODO span wrappers from exported TEXT when targeting Hugo."
     (if (eq backend 'hugo)
         (replace-regexp-in-string
          "<span class=\"org-todo[^>]*>\\([^<]+\\)</span>"
