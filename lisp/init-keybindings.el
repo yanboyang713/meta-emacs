@@ -61,6 +61,7 @@
  "nrs" '(consult-org-roam-search :wk "search")
  "nri" '(:ignore t :wk "insert")
  "nrin" '(org-roam-node-insert :wk "insert general note")
+ "nric" '(citar-create-note :wk "citar reference note")
  "nrib" '(orb-insert-link :wk "insert bibliographic note")
  "nrd" '(:ignore t :wk "dailies")
  "nrdt" '(org-roam-dailies-goto-today :wk "today")
