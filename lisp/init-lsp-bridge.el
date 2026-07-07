@@ -74,7 +74,7 @@
 
   ;; disable tabnine: it's not open source
   (setq acm-enable-tabnine nil)
-  (setq lsp-bridge-python-command "/usr/bin/python3")
+  (setq lsp-bridge-python-command "/usr/bin/python3.12")
 
   ;; enable signature help in posframe
   (setq lsp-bridge-enable-signature-help t)
@@ -99,8 +99,8 @@
 ;; needed for terminal, there is a visual bug
 ;; if loading them in graphics mode
 (unless (or (display-graphic-p) (daemonp))
-  (require 'popon-setup)
-  (require 'acm-terminal-setup))
+  (require 'popon-setup nil t)
+  (require 'acm-terminal-setup nil t))
 
 ;; And the following to your ~/.emacs startup file.
 ;;
