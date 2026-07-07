@@ -336,6 +336,8 @@ If an error occurs during the export of a file, log the error and continue with 
            (message "Error exporting file %s: %s" file (error-message-string err))))))))
 
 ;; org-noter stuff
+(straight-use-package 'nov)
+
 (use-package org-noter
   :straight t
   :after pdf-tools
@@ -534,7 +536,11 @@ If an error occurs during the export of a file, log the error and continue with 
   :straight t
   :hook (pdf-view-mode . (lambda() (display-line-numbers-mode 0)))
   :config
-  (pdf-tools-install)
+  ;; Do not build epdfinfo during startup: pdf-tools' autobuild may invoke
+  ;; sudo to install system dependencies, which is not available on this host.
+  (when (and (display-graphic-p)
+             (executable-find "epdfinfo"))
+    (pdf-tools-install t))
   (setq-default pdf-view-display-size 'fit-width)
   :custom
   (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
