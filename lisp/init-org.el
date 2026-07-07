@@ -27,6 +27,7 @@
 	
 	;; hugo
 	org-hugo-base-dir "/home/yanboyang713/quartz"
+	org-hugo-section "posts"
 	org-hugo-front-matter-format "yaml"
 
 	;; org keyword related stuff
@@ -183,7 +184,29 @@
 ;; All-the-icons (for pretty symbols in citar)
 (use-package all-the-icons
   :straight t
-  :if (display-graphic-p))
+  :defer t)
+
+(defun yb/citar-set-symbols (&optional frame)
+  "Set `citar-symbols' with icons when possible.
+
+When running as a daemon, this avoids calling icon functions before a graphical
+frame exists."
+  (when (boundp 'citar-symbols)
+    (cond
+     ;; Don't overwrite icon settings when creating a terminal frame.
+     ((and frame (not (display-graphic-p frame)))
+      nil)
+     ((and (if frame (display-graphic-p frame) (display-graphic-p))
+	   (require 'all-the-icons nil t))
+      (setq citar-symbols
+	    `((file ,(all-the-icons-faicon "file-pdf-o" :face 'all-the-icons-green :v-adjust -0.1) . " ")
+	      (note ,(all-the-icons-material "speaker_notes" :face 'all-the-icons-blue :v-adjust -0.3) . " ")
+	      (link ,(all-the-icons-octicon "link" :face 'all-the-icons-orange :v-adjust 0.01) . " "))))
+     (t
+      (setq citar-symbols
+	    '((file "file" . " ")
+	      (note "note" . " ")
+	      (link "link" . " ")))))))
 
 ;; Org-cite and Citar configuration using straight.el
 (use-package citar
@@ -196,11 +219,10 @@
   (org-cite-activate-processor 'citar)
   (citar-bibliography '("~/org/library.bib"))
   (citar-notes-paths '("~/org/org-roam/references/"))
-  (citar-symbols
-   `((file ,(all-the-icons-faicon "file-pdf-o" :face 'all-the-icons-green :v-adjust -0.1) . " ")
-     (note ,(all-the-icons-material "speaker_notes" :face 'all-the-icons-blue :v-adjust -0.3) . " ")
-     (link ,(all-the-icons-octicon "link" :face 'all-the-icons-orange :v-adjust 0.01) . " ")))
-  (citar-symbol-separator "  "))
+  (citar-symbol-separator "  ")
+  :config
+  (yb/citar-set-symbols)
+  (add-hook 'after-make-frame-functions #'yb/citar-set-symbols))
 
 ;; citar-org-roam only offers the citar-org-roam-note-title-template variable
 ;; for customizing the contents of a new note and no way to specify a custom
@@ -218,8 +240,7 @@
        :templates
        '(("r" "reference" plain "%?" :if-new
           (file+head
-           "%(concat
- (when citar-org-roam-subdir (concat citar-org-roam-subdir \"/\")) \"${citekey}.org\")"
+           "references/${citekey}.org"
            "#+title: ${title}\n\n#+begin_src bibtex\n%(dh/citar-get-bibtex citekey)\n#+end_src\n")
           :immediate-finish t
           :unnarrowed t))
@@ -330,7 +351,10 @@ If an error occurs during the export of a file, log the error and continue with 
   :after org
   :hook (org-roam-mode . visual-line-mode)
   :config
-  (setq org-roam-directory "~/org/org-roam/references/")
+  ;; org-roam root directory. This contains subfolders like:
+  ;; - references/ (used as "person" nodes for org-roam-second-brain, per preference)
+  ;; - projects/, ideas/, admin/, daily/, etc.
+  (setq org-roam-directory "~/org/org-roam/")
   (add-to-list 'display-buffer-alist
 	       '("\\*org-roam\\*"
 		 (display-buffer-in-side-window)
@@ -348,7 +372,7 @@ If an error occurs during the export of a file, log the error and continue with 
 	(quote (("d" "default" plain
 		 "%?"
 		 :target
-		 (file+head "%<%Y-%m-%d-%H%M%S>-${slug}.org"
+		 (file+head "references/%<%Y-%m-%d-%H%M%S>-${slug}.org"
 			    "#+title: ${title}\n#+date: %<%Y-%m-%d>\n")
 		 :unnarrowed t)
 		("j" "journal article" plain
@@ -390,8 +414,56 @@ If an error occurs during the export of a file, log the error and continue with 
   (setq org-roam-ui-sync-theme t
         org-roam-ui-follow t
         org-roam-ui-update-on-save t)
-  ;; Enable org-roam-ui-mode globally.
-  (org-roam-ui-mode 1))
+  ;; Avoid breaking daemon startup if the org-roam-ui webserver port is already in use.
+  ;; Enable manually via `M-x org-roam-ui-mode` when needed.
+  (when (display-graphic-p)
+    (ignore-errors
+      (org-roam-ui-mode 1))))
+
+;; org-roam-ai / org-roam-mcp
+;;
+;; Upstream moved the user-facing packages (org-roam-vector-search, etc.) into:
+;;   https://github.com/dcruver/org-roam-second-brain
+;; while keeping org-roam-api.el in:
+;;   https://github.com/dcruver/org-roam-ai
+(condition-case err
+    (progn
+      (straight-use-package
+	'(org-roam-second-brain
+	  :type git
+	  :host github
+	  :repo "dcruver/org-roam-second-brain"))
+
+      (straight-use-package
+	'(org-roam-api
+	  :type git
+	  :host github
+	  :repo "dcruver/org-roam-ai"
+	  :files ("packages/org-roam-ai/org-roam-api.el")))
+
+      ;; Ensure the features are actually loaded (required for org-roam-mcp startup)
+      (dolist (feature '(org-roam-second-brain org-roam-vector-search org-roam-api))
+	(unless (require feature nil t)
+	  (message "[init-org] Optional feature not available: %S" feature)))
+
+      ;; org-roam-second-brain: store Person nodes in references/ and keep the
+      ;; other structured node types in dedicated subfolders under org-roam-directory.
+      (when (boundp 'sb/directories)
+	(setq sb/directories
+	      '((person . "references")
+		(project . "projects")
+		(idea . "ideas")
+		(admin . "admin"))))
+
+      ;; org-roam-vector-search defaults to Infinity (localhost:8080). Configure
+      ;; Ollama-compatible defaults so semantic tools work out of the box when
+      ;; Ollama is running.
+      (when (boundp 'org-roam-semantic-embedding-url)
+	(setq org-roam-semantic-embedding-url "http://localhost:11434/v1"))
+      (when (boundp 'org-roam-semantic-embedding-model)
+	(setq org-roam-semantic-embedding-model "nomic-embed-text")))
+  (error
+   (message "[init-org] org-roam-ai/org-roam-mcp setup failed: %s" err)))
 
 ;; consult-org-roam
 (use-package consult
@@ -508,6 +580,23 @@ If an error occurs during the export of a file, log the error and continue with 
   :after ox
   :config
   (require 'ox-hugo)
+  ;; Quartz publishes note assets from content/, not Hugo's root static/ dir.
+  ;; Keep ox-hugo exports focused on Markdown under content/posts.
+  (setq org-hugo-external-file-extensions-allowed-for-copying nil)
+  (defun my/org-hugo-attachment-rewrite-as-is (path _info)
+    "Leave attachment PATH unchanged instead of copying it to Hugo static/."
+    path)
+  (defun my/org-hugo-skip-ltximg-copy (&rest _args)
+    "Skip ox-hugo's Hugo static/ LaTeX image copy step."
+    nil)
+  (unless (advice-member-p #'my/org-hugo-attachment-rewrite-as-is
+                           'org-hugo--attachment-rewrite-maybe)
+    (advice-add 'org-hugo--attachment-rewrite-maybe
+                :override #'my/org-hugo-attachment-rewrite-as-is))
+  (unless (advice-member-p #'my/org-hugo-skip-ltximg-copy
+                           'org-hugo--copy-ltximg-maybe)
+    (advice-add 'org-hugo--copy-ltximg-maybe
+                :override #'my/org-hugo-skip-ltximg-copy))
   (defun my/hugo-strip-relref-directory (text backend _info)
     "Trim directory components from Hugo relref shortcodes in exported TEXT."
     (if (and (eq backend 'hugo)

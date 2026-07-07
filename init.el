@@ -19,6 +19,12 @@
 (add-to-list 'load-path (expand-file-name "lisp" user-emacs-directory))
 (require 'init-benchmarking) ;; Measure startup time
 
+;; Ensure emacsclient can connect (required by org-roam-mcp)
+(unless noninteractive
+  (require 'server)
+  (unless (server-running-p)
+    (server-start)))
+
 ;; Adjust garbage collection thresholds during startup, and thereafter
 
 (let ((normal-gc-cons-threshold (* 20 1024 1024))
@@ -72,3 +78,31 @@
 ;; no-byte-compile: t
 ;; End:
 ;;; init.el ends here
+
+;; Use qutebrowser for opening URLs from Emacs
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "qutebrowser")
+
+;; Ensure org-roam-ui opens in qutebrowser
+(with-eval-after-load 'org-roam-ui
+  (setq org-roam-ui-browser-function 'browse-url-generic
+        browse-url-generic-program "qutebrowser"))
+
+(with-eval-after-load 'org-roam-ui
+  (setq org-roam-ui-browser-function
+        (lambda (url)
+          (start-process "qutebrowser" nil "qutebrowser" "--target" "tab" url))))
+
+;; Use qutebrowser via browse-url-generic (user request)
+(setq browse-url-browser-function '''browse-url-generic
+      browse-url-generic-program "qutebrowser"
+      org-roam-ui-browser-function '''browse-url-generic)
+
+;; User-requested browser settings
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "qutebrowser"
+      org-roam-ui-browser-function 'browse-url-generic)
+
+;; Ensure org-roam-ui uses browse-url-generic (override any earlier hooks)
+(with-eval-after-load 'org-roam-ui
+  (setq org-roam-ui-browser-function 'browse-url-generic))

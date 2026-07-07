@@ -41,7 +41,7 @@ Files whose names match \"/daily/\" are skipped, and files with excluded tags (i
 (setq org-publish-project-alist
       '(("quartz"
          :base-directory "~/org/org-roam/"         ; or wherever your main org-roam files live
-         :publishing-directory "~/quartz/"           ; destination for exported files
+         :publishing-directory "~/quartz/content/posts/" ; destination for exported posts
          :select-tags '()                            ; adjust if needed
          :recursive t
          :publishing-function my/ox-hugo-org-publish
