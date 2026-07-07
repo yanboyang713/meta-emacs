@@ -10,8 +10,10 @@
 (use-package pyvenv
   :straight t
   :config
-  (setenv "WORKON_HOME" "~/.pyenv/versions")
-  (pyvenv-workon "3.10.10") ;; Default venv
+  (let ((workon-home (expand-file-name "~/.pyenv/versions")))
+    (setenv "WORKON_HOME" workon-home)
+    (when (file-directory-p (expand-file-name "3.10.10" workon-home))
+      (pyvenv-workon "3.10.10"))) ;; Default venv, when present
   (pyvenv-tracking-mode 1))
 
 (provide 'init-python)
