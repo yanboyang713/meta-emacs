@@ -1,4 +1,4 @@
-;;; init-lsp-bridge.el --- Configuration for lsp-bridge
+;;; init-lsp-bridge.el --- Configuration for lsp-bridge -*- lexical-binding: t -*-
 
 ;; Filename: init-lsp-bridge.el
 ;; Description: Configuration for display line number

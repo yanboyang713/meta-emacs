@@ -3,16 +3,18 @@
 ;;; Code:
 
 ;; Set theme
- (use-package monokai-theme
-   :straight t
-   :config
-   (setq monokai-background "#151515"
-	 monokai-green "#98C379")
-   (load-theme 'monokai t))
+(use-package monokai-theme
+  :straight t
+  :config
+  (setq monokai-background "#151515"
+        monokai-green "#98C379")
+  (when (facep 'org-level-8)
+    (set-face-attribute 'org-level-8 nil :inherit 'default))
+  (load-theme 'monokai t))
 
 ;; Set font
 (add-to-list 'default-frame-alist '(font . "RobotoMono Nerd Font 13"))
-(set-face-attribute 'default t :font "RobotoMono Nerd Font 13") 
+(set-face-attribute 'default t :font "RobotoMono Nerd Font 13")
 
 ;; Tilde fringe
 (use-package vi-tilde-fringe

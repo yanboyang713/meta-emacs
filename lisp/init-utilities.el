@@ -127,7 +127,13 @@
   :after treemacs)
 
 (use-package magit
-  :straight t)
+  :straight t
+  :init
+  ;; Work around Magit bytecode that can read this before the mode variable is
+  ;; initialized by `define-globalized-minor-mode'.
+  (require 'autorevert)
+  (defvar magit-auto-revert-mode
+    (not (or global-auto-revert-mode noninteractive))))
 
 ;; Mode-line
 (use-package doom-modeline
