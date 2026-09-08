@@ -5,11 +5,14 @@
 ;; Set theme
 (use-package monokai-theme
   :straight t
-  :config
+  :init
   (setq monokai-background "#151515"
         monokai-green "#98C379")
-  (when (facep 'org-level-8)
-    (set-face-attribute 'org-level-8 nil :inherit 'default))
+  :config
+  (dolist (face '(org-level-1 org-level-2 org-level-3 org-level-4
+                  org-level-5 org-level-6 org-level-7 org-level-8))
+    (when (facep face)
+      (set-face-attribute face nil :inherit 'default)))
   (load-theme 'monokai t))
 
 ;; Set font
